@@ -25,11 +25,14 @@ services:
         image: hauptmedia/mariadb:10.1
         build: ./mariadb
         hostname: db
+        container_name: ${COMPOSE_PROJECT_NAME}_db_con
         ports:
           - 13306:3306
+        volumes:
+          - .mysql/db:/var/lib/mysql
         environment:
           - MYSQL_ROOT_PASSWORD=wordpress
-          - REPLICATION_PASSWORD=test
+          - REPLICATION_PASSWORD=wordpress
           - MYSQL_DATABASE=wordpress
           - MYSQL_USER=wordpress
           - MYSQL_PASSWORD=wordpress
@@ -45,13 +48,16 @@ services:
         image: hauptmedia/mariadb:10.1
         build: ./mariadb
         hostname: db1
+        container_name: ${COMPOSE_PROJECT_NAME}_db_con_1
         links:
           - db
         ports:
           - 23306:3306
+        volumes:
+          - .mysql/db1:/var/lib/mysql
         environment:
           - MYSQL_ROOT_PASSWORD=wordpress
-          - REPLICATION_PASSWORD=test
+          - REPLICATION_PASSWORD=wordpress
           - MYSQL_DATABASE=wordpress
           - MYSQL_USER=wordpress
           - MYSQL_PASSWORD=wordpress
@@ -67,13 +73,16 @@ services:
         image: hauptmedia/mariadb:10.1
         build: ./mariadb
         hostname: db2
+        container_name: ${COMPOSE_PROJECT_NAME}_db_con_2
         links:
           - db
         ports:
           - 33306:3306
+        volumes:
+          - ./mysql/db2:/var/lib/mysql
         environment:
           - MYSQL_ROOT_PASSWORD=wordpress
-          - REPLICATION_PASSWORD=test
+          - REPLICATION_PASSWORD=wordpress
           - MYSQL_DATABASE=wordpress
           - MYSQL_USER=wordpress
           - MYSQL_PASSWORD=wordpress
@@ -92,10 +101,16 @@ services:
         hostname: apache1
         depends_on:
             - db
+            - db1
+            - db2
         links:
             - db:mysql
+            - db1:myslq
+            - db2:myslq
         expose:
             - ${APACHE_EXPOSED_PORT}
+        volumes:
+            - ./wordpress:/var/www/html
         networks:
             public_sj:
                 ipv4_address: ${APACHE_1_IP}
@@ -111,10 +126,16 @@ services:
         hostname: apache2
         depends_on:
             - db
+            - db1
+            - db2
         links:
             - db:mysql
+            - db1:mysql
+            - db2:mysql
         expose:
             - ${APACHE_EXPOSED_PORT}
+        volumes:
+            - ./wordpress:/var/www/html
         networks:
             public_sj:
                 ipv4_address: ${APACHE_2_IP}
