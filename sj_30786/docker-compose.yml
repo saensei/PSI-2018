@@ -23,6 +23,7 @@ services:
 #db - Used Mariadb
     db:
         image: hauptmedia/mariadb:10.1
+        build: ./mariadb
         hostname: db
         ports:
           - 13306:3306
@@ -42,6 +43,7 @@ services:
                 ipv4_address: ${db_IP}
     db1:
         image: hauptmedia/mariadb:10.1
+        build: ./mariadb
         hostname: db1
         links:
           - db
@@ -59,6 +61,7 @@ services:
 
     db2:
         image: hauptmedia/mariadb:10.1
+        build: ./mariadb
         hostname: db2
         links:
           - db
