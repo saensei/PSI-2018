@@ -50,7 +50,11 @@ services:
         ports:
           - 23306:3306
         environment:
+          - MYSQL_ROOT_PASSWORD=wordpress
           - REPLICATION_PASSWORD=test
+          - MYSQL_DATABASE=wordpress
+          - MYSQL_USER=wordpress
+          - MYSQL_PASSWORD=wordpress
           - GALERA=On
           - NODE_NAME=db1
           - CLUSTER_NAME=maria_cluster
@@ -68,7 +72,11 @@ services:
         ports:
           - 33306:3306
         environment:
+          - MYSQL_ROOT_PASSWORD=wordpress
           - REPLICATION_PASSWORD=test
+          - MYSQL_DATABASE=wordpress
+          - MYSQL_USER=wordpress
+          - MYSQL_PASSWORD=wordpress
           - GALERA=On
           - NODE_NAME=db2
           - CLUSTER_NAME=maria_cluster
@@ -81,6 +89,7 @@ services:
     apache_img_1:
         container_name: ${COMPOSE_PROJECT_NAME}_apache_con_1
         build: ./apache/1
+        hostname: apache1
         depends_on:
             - db
         links:
@@ -99,6 +108,7 @@ services:
     apache_img_2:
         container_name: ${COMPOSE_PROJECT_NAME}_apache_con_2
         build: ./apache/2
+        hostname: apache2
         depends_on:
             - db
         links:
