@@ -1,0 +1,135 @@
+
+ ####################################################
+ #  ____________________________________            #
+ #  |                                  |            #
+ #  |  Subject: PSI                    |            #
+ #  |  HeadTeacher: mgr Karol Kornatka |            #
+ #  |__________________________________|            #
+ #                                                  #
+ #   Project: WWW |HA Apache + HA Mariadb |         #
+ #   Author:  Szymon Jakubowski                     #
+ #   Index number: 30786                            #
+ #   email: szymjak@wsinf.edu.pl                    #
+ #   private email: pasjajakub@gmail.com            #
+ #                                                  #
+ ####################################################
+
+# Dockercompose version
+version: '3'
+
+#Services
+services:
+
+#db - Used Mariadb
+    db:
+        image: hauptmedia/mariadb:10.1
+        hostname: db
+        ports:
+          - 13306:3306
+        environment:
+          - MYSQL_ROOT_PASSWORD=wordpress
+          - REPLICATION_PASSWORD=test
+          - MYSQL_DATABASE=wordpress
+          - MYSQL_USER=wordpress
+          - MYSQL_PASSWORD=wordpress
+          - GALERA=On
+          - NODE_NAME=db
+          - CLUSTER_NAME=maria_cluster
+          - CLUSTER_ADDRESS=gcomm://
+        command: --wsrep-new-cluster
+        networks:
+            public_sj:
+                ipv4_address: ${db_IP}
+    db1:
+        image: hauptmedia/mariadb:10.1
+        hostname: db1
+        links:
+          - db
+        ports:
+          - 23306:3306
+        environment:
+          - REPLICATION_PASSWORD=test
+          - GALERA=On
+          - NODE_NAME=db1
+          - CLUSTER_NAME=maria_cluster
+          - CLUSTER_ADDRESS=gcomm://db
+        networks:
+            public_sj:
+                ipv4_address: ${db_1_IP}
+
+    db2:
+        image: hauptmedia/mariadb:10.1
+        hostname: db2
+        links:
+          - db
+        ports:
+          - 33306:3306
+        environment:
+          - REPLICATION_PASSWORD=test
+          - GALERA=On
+          - NODE_NAME=db2
+          - CLUSTER_NAME=maria_cluster
+          - CLUSTER_ADDRESS=gcomm://db
+        networks:
+            public_sj:
+                ipv4_address: ${db_2_IP}
+
+# apache - used wordpress 4.5 image from official dockerhub repository
+    apache_img_1:
+        container_name: ${COMPOSE_PROJECT_NAME}_apache_con_1
+        build: ./apache/1
+        depends_on:
+            - db
+        links:
+            - db:mysql
+        expose:
+            - ${APACHE_EXPOSED_PORT}
+        networks:
+            public_sj:
+                ipv4_address: ${APACHE_1_IP}
+        environment:
+            - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+            - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+            - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+
+# apache - used wordpress 4.5 image from official dockerhub repository
+    apache_img_2:
+        container_name: ${COMPOSE_PROJECT_NAME}_apache_con_2
+        build: ./apache/2
+        depends_on:
+            - db
+        links:
+            - db:mysql
+        expose:
+            - ${APACHE_EXPOSED_PORT}
+        networks:
+            public_sj:
+                ipv4_address: ${APACHE_2_IP}
+        environment:
+            - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+            - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+            - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+
+# haproxy - used to crete Load Balance with apache serves * haproxy 1,7
+    haproxy_img:
+        build: ./haproxy
+        ports:
+            - 80:80
+        expose:
+            - 80
+        networks:
+            public_sj:
+                ipv4_address: ${HA_PROXY_IP}
+        environment:
+            - APACHE_1_IP=${APACHE_1_IP}
+            - APACHE_2_IP=${APACHE_2_IP}
+            - APACHE_EXPOSED_PORT=${APACHE_EXPOSED_PORT}
+
+# used - own created network
+networks:
+    public_sj:
+        driver: bridge
+        ipam:
+          driver: default
+          config:
+              - subnet: ${NETWORK_SUBNET}
