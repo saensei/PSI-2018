@@ -10,7 +10,7 @@ echo "192.168.56.30 db0" >> /etc/hosts
 echo "192.168.56.31 db1" >> /etc/hosts
 echo "192.168.56.32 db2" >> /etc/hosts
 
-apt-get install -y php5 heartbeat glusterfs-client php5-mysql
+apt-get install -y php5 heartbeat glusterfs-client php5-mysql curl
 apachectl stop
 systemctl disable apache2
 
