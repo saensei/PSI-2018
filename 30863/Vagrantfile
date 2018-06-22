@@ -1,0 +1,140 @@
+# vagrant plugin install vagrant-reload
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.configure("2") do |config|
+        config.vm.define "db2" do |db2|
+                db2.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 512
+                        vbox.cpus = 1
+                        vbox.name = "db2"
+                        vbox.gui = false
+                end
+                db2.vm.box = "debian/jessie64"
+                db2.vm.hostname = "db2"
+                db2.vm.network "private_network", ip: "192.168.56.32"
+                db2.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get -y purge openhpid
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                db2.vm.provision :reload
+                db2.vm.provision "shell", path: "db.sh", privileged: true
+        end
+
+        config.vm.define "db1" do |db1|
+                db1.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 512
+                        vbox.cpus = 1
+                        vbox.name = "db1"
+                        vbox.gui = false
+                end
+                db1.vm.box = "debian/jessie64"
+                db1.vm.hostname = "db1"
+                db1.vm.network "private_network", ip: "192.168.56.31"
+                db1.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                db1.vm.provision :reload
+                db1.vm.provision "shell", path: "db.sh", privileged: true
+        end
+
+        config.vm.define "gfs3" do |gfs3|
+                gfs3.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 256
+                        vbox.cpus = 1
+                        vbox.name = "gfs3"
+                        vbox.gui = false
+                end
+                gfs3.vm.box = "debian/jessie64"
+                gfs3.vm.hostname = "gfs3"
+                gfs3.vm.network "private_network", ip: "192.168.56.23"
+                gfs3.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                gfs3.vm.provision :reload
+                gfs3.vm.provision "shell", path: "gfs.sh", privileged: true
+        end
+
+        config.vm.define "gfs2" do |gfs2|
+                gfs2.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 256
+                        vbox.cpus = 1
+                        vbox.name = "gfs2"
+                        vbox.gui = false
+                end
+                gfs2.vm.box = "debian/jessie64"
+                gfs2.vm.hostname = "gfs2"
+                gfs2.vm.network "private_network", ip: "192.168.56.22"
+                gfs2.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                gfs2.vm.provision :reload
+                gfs2.vm.provision "shell", path: "gfs.sh", privileged: true
+        end
+
+        config.vm.define "gfs1" do |gfs1|
+                gfs1.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 256
+                        vbox.cpus = 1
+                        vbox.name = "gfs1"
+                        vbox.gui = false
+                end
+                gfs1.vm.box = "debian/jessie64"
+                gfs1.vm.hostname = "gfs1"
+                gfs1.vm.network "private_network", ip: "192.168.56.21"
+                gfs1.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                gfs1.vm.provision :reload
+                gfs1.vm.provision "shell", path: "gfs.sh", privileged: true
+        end
+
+        config.vm.define "www1" do |www1|
+                www1.vm.provider :virtualbox do |vbox|
+                        vbox.memory = 256
+                        vbox.cpus = 1
+                        vbox.name = "www1"
+                        vbox.gui = false
+                end
+                www1.vm.box = "debian/jessie64"
+                www1.vm.hostname = "www1"
+                www1.vm.network "private_network", ip: "192.168.56.11"
+                www1.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                www1.vm.provision :reload
+                www1.vm.provision "file", source: "wp-config.php", destination: "/tmp/wp-config.php"
+                www1.vm.provision "shell", path: "www.sh", privileged: true 
+	end
+
+	config.vm.define "www2" do |www2|
+		www2.vm.provider :virtualbox do |vbox|
+			vbox.memory = 256
+			vbox.cpus = 1
+			vbox.name = "www2"
+                        vbox.gui = false
+		end
+	        www2.vm.box = "debian/jessie64"
+	        www2.vm.hostname = "www2"
+	        www2.vm.network "private_network", ip: "192.168.56.12"
+                www2.vm.provision "shell", inline: <<-SHELL
+                        sudo apt-get update
+                        sudo apt-get -y upgrade
+                        sudo apt-get -y dist-upgrade
+                        SHELL
+                www2.vm.provision :reload
+                www2.vm.provision "shell", path: "www.sh", privileged: true
+	end
+end
