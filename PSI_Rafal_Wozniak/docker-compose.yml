@@ -1,0 +1,71 @@
+#Rafal Wozniak 30834
+#obrazy pochodza z oficjalnych repozytoriow dockerhub
+#pomocne strony:
+#https://docs.docker.com/compose/install/
+#https://docs.docker.com/install/linux/docker-ce/ubuntu/
+#https://hub.docker.com/_/mysql/
+#https://hub.docker.com/_/wordpress/
+#https://hub.docker.com/r/phpmyadmin/phpmyadmin/
+
+# Użyta wersja Docker-Compose
+version: '2'
+
+# Kontenery które zostaną utworzone i uruchomione
+services:
+
+        # Uruchamiany kontener Wordpress ( server apache wraz plikami wordpress )
+        wordpress:
+                image: wordpress:4.5
+                container_name: wordpress-container
+                depends_on:
+                        - db
+                links:
+                        - db:mysql
+                ports:
+                        - 80:80
+                environment:
+                        WORDPRESS_DB_HOST: db:3306
+                        WORDPRESS_DB_PASSWORD: wordpress
+                        WORDPRESS_DB_USER: wordpress
+                networks:
+                        rafwoz:
+                restart: always
+        # Kontener z bazą danych mariadb
+        db:
+                image: mariadb:10.1
+                container_name: mariadb-server
+                volumes_from:
+                        - db-data
+                environment:
+                        MYSQL_ROOT_PASSWORD: example
+                        MYSQL_DATABASE: wordpress
+                        MYSQL_USER: wordpress
+                        MYSQL_PASSWORD: wordpress
+                networks:
+                        rafwoz:
+                restart: always
+        # Kontener z storage do bazy danych, wszelkie dane zapisane są w podlinkowanym kontenerze
+        db-data:
+                image: mariadb:10.1
+                container_name: db_storage
+                volumes:
+                        - ./mariadb:/var/lib/mysql
+                networks:
+                        rafwoz:
+                command: "true"
+        # PhpMyAdmin - konener ułatwiający zarządzanie bazami danych
+        phpmyadmin:
+                image: phpmyadmin/phpmyadmin
+                container_name: phpmyadmin-container
+                ports:
+                        - 8080:80
+                links:
+                        - db
+                networks:
+                        rafwoz:
+                environment:
+                        PMA_HOST: db
+# Dane utworzonej sieci
+networks:
+   rafwoz:
+      driver: bridge
