@@ -1,0 +1,146 @@
+version: '3'
+services:
+  
+    traefik:
+        image: traefik:v1.2.0-rc2-alpine
+        networks:
+            - traefik
+        ports:
+            - "8080:80"
+            - "8443:443"
+            - "8090:8080"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        command: traefik --web -l DEBUG --docker --docker.swarmmode --docker.watch -c /etc/traefik/traefik.toml
+        deploy:
+            placement:
+                constraints:
+                    - node.role == manager
+    first-wordpress:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8081:80
+        networks:
+            - traefik
+            - db
+        depends_on:
+            - node1
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+            labels:
+                - "traefik.frontend.rule=Host:first"
+                - "traefik.docker.network=traefiked-wordpress_traefik"
+                - "traefik.port=80"
+        environment:
+            WORDPRESS_DB_HOST: "master_node"
+            WORDPRESS_DB_NAME: "maria"
+            WORDPRESS_TABLE_PREFIX: "beluga"
+            WORDPRESS_DB_USER: "maria"
+            WORDPRESS_DB_PASSWORD: "test"
+    second-wordpress:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8082:80
+        networks:
+            - traefik
+            - db
+        depends_on:
+            - master_node
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+            labels:
+                - "traefik.frontend.rule=Host:second"
+                - "traefik.docker.network=multi-site-proxy_traefik"
+                - "traefik.port=80"
+        environment:
+            WORDPRESS_DB_HOST: "master_node"
+            WORDPRESS_DB_NAME: "maria"
+            WORDPRESS_TABLE_PREFIX: "second"
+            WORDPRESS_DB_USER: "maria"
+            WORDPRESS_DB_PASSWORD: "test"
+
+    master_node:
+        image: hauptmedia/mariadb:10.1
+        hostname: master_node
+        networks:
+            - db
+        ports:
+            - 13306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: "test"
+            REPLICATION_PASSWORD: "test"
+            MYSQL_DATABASE: "maria"
+            MYSQL_USER: "maria"
+            MYSQL_PASSWORD: "test"
+            GALERA: "On"
+            NODE_NAME: "master_node"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://"
+        command: --wsrep-new-cluster
+
+    node1:
+        image: hauptmedia/mariadb:10.1
+        hostname: node1
+        networks:
+            - db
+        links:
+            - master_node
+        ports:
+            - 23306:3306
+        environment:
+            REPLICATION_PASSWORD: "test"
+            GALERA: "On"
+            NODE_NAME: "node1"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://master_node"
+          
+    node2:
+        image: hauptmedia/mariadb:10.1
+        hostname: node2
+        networks:
+            - db
+        links:
+            - master_node
+        ports:
+            - 33306:3306
+        environment:
+            REPLICATION_PASSWORD: "test"
+            GALERA: "On"
+            NODE_NAME: "node2"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://master_node"
+
+networks:
+    traefik:
+        driver: overlay
+    db:
+        driver: overlay
+
+        
+#    gs1:
+#        image: metal3d/glusterfs
+#        privileged: true
+#        networks:
+#          - gfsnet
+#        volumes:
+#        - ./volumes/server1:/data
+
+#    gs2:
+#        image: metal3d/glusterfs
+#        privileged: true
+#        networks:
+#          - gfsnet
+#        volumes:
+#        - ./volumes/server2:/data        
+#    gfsnet:
+#        driver: overlay  
