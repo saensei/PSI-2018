@@ -1,0 +1,54 @@
+#Marcin Cieślak (c) PSI 2018
+# Wersja pliku docker-compose
+version: '2'
+
+# Servisy które będą budowane w pliku
+services:
+
+	# Obraz wordpress ( apache2 + php + pliki wordpress )
+        wordpress:
+                image: wordpress:4.5
+                container_name: wordpress-container
+                depends_on:
+                        - db
+                links:
+                        - db:mysql
+                ports:
+                        - 80:80
+                environment:
+                        WORDPRESS_DB_HOST: db:3306
+                        WORDPRESS_DB_PASSWORD: wordpress
+                        WORDPRESS_DB_USER: wordpress
+                restart: always
+			
+	# Obraz bazy danych mariad do połączenia z kontenerem wordpress 
+        db:
+                image: mariadb:10.1
+                container_name: mariadb-server
+                volumes_from:
+                        - db-data
+                environment:
+                        MYSQL_ROOT_PASSWORD: example
+                        MYSQL_DATABASE: wordpress
+                        MYSQL_USER: wordpress
+                        MYSQL_PASSWORD: wordpress
+                restart: always
+
+	# Storage dla danych z bazy danych
+        db-data:
+                image: mariadb:10.1
+                container_name: mariadb-data
+                volumes:
+                        - ./volumes/db:/var/lib/myslq
+                command: "true"
+
+	# PhpMyAdmin do zarządzania bazą danych 
+        phpmyadmin:
+                image: phpmyadmin/phpmyadmin
+                container_name: phpmyadmin-container
+                ports:
+                        - 8080:80
+                links:
+                        - db
+                environment:
+                        PMA_HOST: db
