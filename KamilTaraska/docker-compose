@@ -1,0 +1,12 @@
+postgres:
+  build: ./postgres
+  ports:
+    - "5432:5432"
+
+djangoapp:
+  build: ./django-app
+  command: "python manage.py runserver 0.0.0.0:80"
+  links:
+    - postgres
+  volumes:
+    - /vagrant/django-app/src:/opt/django-app
