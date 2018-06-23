@@ -1,0 +1,17 @@
+ó
+úšiUc           @   s˛   d  Z  d d l Z e j j e j j e   Z d Z e Z e Z	 g  Z
+ d Z d Z d Z
+ d Z i i d d 6e j j e d  d 6d 6Z d Z d Z e Z e Z e Z d Z d S(   sí   
+Django settings for mysite project.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/1.7/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/1.7/ref/settings/
+i˙˙˙˙Ns2   %^@0u%f5k)4!1hty4-8tn_lx!$_)a=!3m1yi$cj-52)0zkdaz4s   django.contrib.admins   django.contrib.auths   django.contrib.contenttypess   django.contrib.sessionss   django.contrib.messagess   django.contrib.staticfiless4   django.contrib.sessions.middleware.SessionMiddlewares)   django.middleware.common.CommonMiddlewares)   django.middleware.csrf.CsrfViewMiddlewares7   django.contrib.auth.middleware.AuthenticationMiddlewares>   django.contrib.auth.middleware.SessionAuthenticationMiddlewares4   django.contrib.messages.middleware.MessageMiddlewares6   django.middleware.clickjacking.XFrameOptionsMiddlewares   mysite.urlss   mysite.wsgi.applications   django.db.backends.sqlite3t   ENGINEs
+   db.sqlite3t   NAMEt   defaults   en-ust   UTCs   /static/(   s   django.contrib.admins   django.contrib.auths   django.contrib.contenttypess   django.contrib.sessionss   django.contrib.messagess   django.contrib.staticfiles(   s4   django.contrib.sessions.middleware.SessionMiddlewares)   django.middleware.common.CommonMiddlewares)   django.middleware.csrf.CsrfViewMiddlewares7   django.contrib.auth.middleware.AuthenticationMiddlewares>   django.contrib.auth.middleware.SessionAuthenticationMiddlewares4   django.contrib.messages.middleware.MessageMiddlewares6   django.middleware.clickjacking.XFrameOptionsMiddleware(   t   __doc__t   ost   patht   dirnamet   __file__t   BASE_DIRt
+   SECRET_KEYt   Truet   DEBUGt   TEMPLATE_DEBUGt
+   ALLOWED_HOSTSt   INSTALLED_APPSt   MIDDLEWARE_CLASSESt   ROOT_URLCONFt   WSGI_APPLICATIONt   joint	   DATABASESt
+   LANGUAGE_CODEt	   TIME_ZONEt   USE_I18Nt   USE_L10Nt   USE_TZt
+   STATIC_URL(    (    (    s)   /opt/django-app/mysite/mysite/settings.pyt   <module>	   s>              
