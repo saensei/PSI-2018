@@ -1,0 +1,193 @@
+version: '3'
+services:
+    db1:
+        image: hauptmedia/mariadb:10.1
+        hostname: db1
+        container_name: db1
+        ports:
+            - 13306:3306
+        volumes:
+            - ./mysql/db1:/var/lib/mysql
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=qwerty
+            - REPLICATION_PASSWORD=wordpress
+            - MYSQL_DATABASE=wordpress
+            - MYSQL_USER=wordpress
+            - MYSQL_PASSWORD=wordpress
+            - GALERA=On
+            - NODE_NAME=db1
+            - CLUSTER_NAME=maria_cluster
+            - CLUSTER_ADDRESS=gcomm://
+        command: --wsrep-new-cluster
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.15
+                
+    db2:
+        image: hauptmedia/mariadb:10.1
+        hostname: db2
+        container_name: db2
+        links:
+            - db1
+        ports:
+            - 23306:3306
+        volumes:
+            - ./mysql/db2:/var/lib/mysql
+        restart: always
+        environment:
+            - REPLICATION_PASSWORD=wordpress
+            - GALERA=On
+            - NODE_NAME=db2
+            - CLUSTER_NAME=maria_cluster
+            - CLUSTER_ADDRESS=gcomm://db1
+            - MYSQL_ROOT_PASSWORD=qwerty
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.16
+    db3:
+        image: hauptmedia/mariadb:10.1
+        hostname: db3
+        container_name: db3
+        links:
+            - db1
+        ports:
+            - 33306:3306
+        volumes:
+            - ./mysql/db3:/var/lib/mysql
+        restart: always
+        environment:
+            - REPLICATION_PASSWORD=wordpress
+            - GALERA=On
+            - NODE_NAME=db3
+            - CLUSTER_NAME=maria_cluster
+            - CLUSTER_ADDRESS=gcomm://db1
+            - MYSQL_ROOT_PASSWORD=qwerty
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.17
+    phpadmin1:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpadmin11
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.18
+        links:
+            - db1:mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_USERNAME: root
+            MYSQL_ROOT_PASSWORD: qwerty
+            PMA_HOST: db1
+    phpadmin2:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpadmin2
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.19
+        links:
+            - db2:mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_USERNAME: root
+            MYSQL_ROOT_PASSWORD: qwerty
+            PMA_HOST: db2
+
+
+    phpadmin3:
+        image: phpmyadmin/phpmyadmin
+        container_name: adm3
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.20
+        links:
+            - db3:mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_USERNAME: root
+            MYSQL_ROOT_PASSWORD: qwerty
+            PMA_HOST: db3
+
+    web1:
+        image: wordpress
+        container_name: web1
+        networks:
+            jankes:
+                ipv4_address: 192.168.100.11
+        depends_on:
+            - db1
+        links:
+            - db1:mysql
+        restart: always
+        volumes:
+            - ./wordpress
+        environment:
+            WORDPRESS_DB_DATABASE: wordpress
+            WORDPRESS_DB_USER: wordpress
+            WORDPRESS_DB_PASSWORD: wordpress
+            WORDPRESS_DB_HOST: db1:3306
+
+    web2:
+       image: wordpress
+       container_name: web2
+       networks:
+          jankes:
+             ipv4_address: 192.168.100.12
+       depends_on:
+          - db2
+       links:
+          - db2:mysql
+       restart: always
+       volumes:
+          - ./wordpress
+       environment:
+          WORDPRESS_DB_DATABASE: wordpress
+          WORDPRESS_DB_USER: wordpress
+          WORDPRESS_DB_PASSWORD: wordpress
+          WORDPRESS_DB_HOST: db2:3306
+
+
+    web3:
+        image: wordpress
+        container_name: web3
+        networks:
+           jankes:
+              ipv4_address: 192.168.100.13
+        depends_on:
+            - db3
+        links:
+            - db3:mysql
+        restart: always
+        volumes:
+            - ./wordpress
+        environment:
+            WORDPRESS_DB_DATABASE: wordpress
+            WORDPRESS_DB_USER: wordpress
+            WORDPRESS_DB_PASSWORD: wordpress
+            WORDPRESS_DB_HOST: db3:3306
+
+    proxy:
+        image: eeacms/haproxy
+        container_name: haproxy
+        depends_on:
+            - web1
+            - web2
+            - web3
+        ports:
+            - "80:5000"
+            - "1936:1936"
+        networks:
+           jankes:
+              ipv4_address: 192.168.100.14
+        environment:
+          BACKENDS: "web1"
+          DNS_ENABLED: "true"
+          LOG_LEVEL: "info"
+
+networks:
+    jankes:
+       driver: bridge
+       ipam:
+          driver: default
+          config:
+             - subnet: 192.168.100.0/24
