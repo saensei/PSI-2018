@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+
+  cms:
+   image: wordpress:latest
+   depends_on:
+      - db
+   environment:
+     SERVICE_PORTS: 80
+     WORDPRESS_DB_USER: wordpress
+     WORDPRESS_DB_PASSWORD: wordpress
+     WORDPRESS_DB_HOST: db:3306
+   deploy:
+     replicas: 3
+     update_config:
+       parallelism: 1
+       delay: 10s
+     restart_policy:
+       condition: any
+   networks:
+     - web
+
+  db:
+   image: mariadb:latest
+   environment:
+     SERVICE_PORTS: 3306
+     MYSQL_ROOT_PASSWORD: somewordpress
+     MYSQL_DATABASE: wordpress
+     MYSQL_USER: wordpress
+     MYSQL_PASSWORD: wordpress
+   deploy:
+     replicas: 2
+     update_config:
+       parallelism: 1
+       delay: 10s
+     restart_policy:
+       condition: any
+   networks:
+     - web
+
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - cms
+    environment:
+      - BALANCE=leastconn
+      - ADDITIONAL_SERVICES=project_dir:cms
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8000:80
+    networks:
+      - web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  web:
+    driver: overlay
