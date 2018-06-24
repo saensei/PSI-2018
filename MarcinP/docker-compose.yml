@@ -1,0 +1,61 @@
+version: '2'
+services:
+  www:
+    build: ./httpd/
+    container_name: kontener_httpd
+    ports:
+      - 80:80
+    links:
+      - php
+    networks:
+      - marcinp
+    volumes_from:
+      - storage
+
+  php:
+    image: php:7.0-fpm
+    container_name: kontener_php
+    expose:
+      - 3306
+    links:
+      - mysql
+    networks:
+      - marcinp
+    volumes_from:
+      - storage
+
+  storage:
+    image: ubuntu
+    container_name: kontener_storage
+    volumes:
+      - ./wordpress/:/var/www/html/
+    networks:
+      - marcinp
+    command: "true"
+
+  mysql:
+    image: mysql:5.6
+    container_name: kontener_mysql
+    volumes_from:
+      - data
+    networks:
+      - marcinp
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: baza
+      MYSQL_USER: marcin
+      MYSQL_PASSWORD: password
+
+  data:
+    image: mysql:5.6
+    container_name: kontener_dane_mysql
+    volumes:
+      - /var/lib/mysql
+    networks:
+      - marcinp
+    command: "true"
+
+networks:
+   marcinp:
+      driver: bridge
+
