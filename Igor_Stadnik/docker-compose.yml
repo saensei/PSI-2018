@@ -1,0 +1,99 @@
+version: '3'
+services:
+    web1:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8081:80
+        networks:
+            - net_db
+        depends_on:
+            - db_master
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+        environment:
+            WORDPRESS_DB_HOST: "db_master"
+            WORDPRESS_DB_NAME: "maria"
+            WORDPRESS_TABLE_PREFIX: "first"
+            WORDPRESS_DB_USER: "maria"
+            WORDPRESS_DB_PASSWORD: "qwerty"
+    web2:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8082:80
+        networks:
+            - net_db
+        depends_on:
+            - db_master
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+        environment:
+            WORDPRESS_DB_HOST: "db_master"
+            WORDPRESS_DB_NAME: "maria"
+            WORDPRESS_TABLE_PREFIX: "second"
+            WORDPRESS_DB_USER: "maria"
+            WORDPRESS_DB_PASSWORD: "qwerty"
+
+    db_master:
+        image: hauptmedia/mariadb:10.1
+        hostname: db_master
+        networks:
+            - net_db
+        ports:
+            - 13306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: "qwerty"
+            REPLICATION_PASSWORD: "qwerty"
+            MYSQL_DATABASE: "maria"
+            MYSQL_USER: "maria"
+            MYSQL_PASSWORD: "qwerty"
+            GALERA: "On"
+            NODE_NAME: "db_master"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://"
+        command: --wsrep-new-cluster
+
+    db1:
+        image: hauptmedia/mariadb:10.1
+        hostname: db1
+        networks:
+            - net_db
+        links:
+            - db_master
+        ports:
+            - 23306:3306
+        environment:
+            REPLICATION_PASSWORD: "qwerty"
+            GALERA: "On"
+            NODE_NAME: "db1"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://db_master"
+          
+    db2:
+        image: hauptmedia/mariadb:10.1
+        hostname: db2
+        networks:
+            - net_db
+        links:
+            - db_master
+        ports:
+            - 33306:3306
+        environment:
+            REPLICATION_PASSWORD: "qwerty"
+            GALERA: "On"
+            NODE_NAME: "db2"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://db_master"
+
+networks:
+    net_db:
+        driver: overlay
